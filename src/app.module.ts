@@ -14,6 +14,7 @@ import { MetaModule } from './meta/meta.module';
 import { CouponsModule } from './coupons/coupons.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { MailModule } from './mail/mail.module';
+import { BannersModule } from './banners/banners.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { MailModule } from './mail/mail.module';
     MetaModule,
     CouponsModule,
     ReviewsModule,
+    BannersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

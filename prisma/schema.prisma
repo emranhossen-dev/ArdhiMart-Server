@@ -34,7 +34,13 @@ model banner_cms {
   subtitle   String?
   imageUrl   String
   linkUrl    String?
-  bannerType String
+  btn1Text   String?   @default("Order Now")
+  btn1Link   String?   @default("/products")
+  btn2Text   String?   @default("Explore Gadgets")
+  btn2Link   String?   @default("/products")
+  badge      String?   @default("Exclusive Deal")
+  bannerType String    @default("hero")
+  order      Int?      @default(0)
   isActive   Boolean?  @default(true)
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @default(now()) @updatedAt
