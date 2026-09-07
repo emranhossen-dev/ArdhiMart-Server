@@ -23,82 +23,24 @@ export interface ReviewRecord {
   updatedAt: Date;
 }
 
-const DEFAULT_SEEDED_REVIEWS: ReviewRecord[] = [
-  {
-    id: 'rev-home-1',
-    userName: 'Tamim Iqbal',
-    role: 'Verified Buyer',
-    rating: 5,
-    comment:
-      'Outstanding product quality and packaging! Delivered inside Dhaka within 24 hours via Steadfast Courier. Highly recommended storefront!',
-    avatar: '/logo.png',
-    image: '',
-    productId: '',
-    isHomepage: true,
-    status: 'approved',
-    createdAt: new Date('2026-08-30T10:00:00Z'),
-    updatedAt: new Date('2026-08-30T10:00:00Z'),
-  },
-  {
-    id: 'rev-home-2',
-    userName: 'Nusrat Jahan',
-    role: 'Verified Buyer',
-    rating: 5,
-    comment:
-      'The minimalist ceramic vase looks even better in real life. Smooth checkout experience and fast customer service support.',
-    avatar: '/logo.png',
-    image: '',
-    productId: '',
-    isHomepage: true,
-    status: 'approved',
-    createdAt: new Date('2026-08-28T14:30:00Z'),
-    updatedAt: new Date('2026-08-28T14:30:00Z'),
-  },
-  {
-    id: 'rev-home-3',
-    userName: 'Tanvir Hossain',
-    role: 'Verified Buyer',
-    rating: 5,
-    comment:
-      'Cash on delivery was smooth and the rider let me inspect product before paying. Best e-commerce shopping experience in BD!',
-    avatar: '/logo.png',
-    image: '',
-    productId: '',
-    isHomepage: true,
-    status: 'approved',
-    createdAt: new Date('2026-08-25T18:15:00Z'),
-    updatedAt: new Date('2026-08-25T18:15:00Z'),
-  },
-];
-
 @Injectable()
 export class ReviewsService implements OnModuleInit {
   private readonly logger = new Logger(ReviewsService.name);
-  private memoryStore: ReviewRecord[] = [...DEFAULT_SEEDED_REVIEWS];
+  private memoryStore: ReviewRecord[] = [];
 
   constructor(private readonly prisma: PrismaService) {}
 
   async onModuleInit() {
     try {
-      const count = await (this.prisma as any).reviews?.count?.().catch(() => null);
-      if (count === 0) {
-        for (const item of DEFAULT_SEEDED_REVIEWS) {
-          await (this.prisma as any).reviews?.create?.({
-            data: {
-              id: item.id,
-              userName: item.userName,
-              role: item.role,
-              rating: item.rating,
-              comment: item.comment,
-              avatar: item.avatar,
-              image: item.image,
-              isHomepage: item.isHomepage,
-              status: item.status,
-            },
-          }).catch(() => null);
+      // Clean up any mock/seeded reviews so storefront only shows real reviews from admin
+      await (this.prisma as any).reviews?.deleteMany?.({
+        where: {
+          OR: [
+            { id: { in: ['rev-home-1', 'rev-home-2', 'rev-home-3'] } },
+            { userName: { in: ['Tamim Iqbal', 'Nusrat Jahan', 'Tanvir Hossain'] } }
+          ]
         }
-        this.logger.log('✅ Seeded default homepage testimonials into DB');
-      }
+      }).catch(() => null);
     } catch (e) {
       this.logger.warn('Reviews initialization fallback active:', e);
     }
