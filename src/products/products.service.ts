@@ -215,6 +215,40 @@ export class ProductsService {
     }
   }
 
+  async createBulk(dtos: CreateProductDto[]) {
+    if (!Array.isArray(dtos) || dtos.length === 0) {
+      throw new BadRequestException('At least 1 product is required for bulk creation');
+    }
+    if (dtos.length > 10) {
+      throw new BadRequestException('A maximum of 10 products can be created in a single batch');
+    }
+
+    const created: any[] = [];
+    const errors: { index: number; title: string; error: string }[] = [];
+
+    for (let i = 0; i < dtos.length; i++) {
+      const dto = dtos[i];
+      try {
+        const prod = await this.create(dto);
+        created.push(prod);
+      } catch (err: any) {
+        errors.push({
+          index: i,
+          title: dto.title || dto.name || `Product #${i + 1}`,
+          error: err.message || 'Failed to create product',
+        });
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      totalRequested: dtos.length,
+      createdCount: created.length,
+      products: created,
+      errors,
+    };
+  }
+
   async update(id: string, dto: UpdateProductDto) {
     const existing = await this.findOneBySlugOrId(id);
 

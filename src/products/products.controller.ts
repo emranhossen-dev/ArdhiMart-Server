@@ -40,6 +40,11 @@ export class ProductsController {
     return this.productsService.findOneBySlugOrId(identifier);
   }
 
+  @Post('bulk')
+  createBulk(@Body() body: { products: CreateProductDto[] }) {
+    return this.productsService.createBulk(body.products || []);
+  }
+
   @Post()
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
