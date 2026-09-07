@@ -89,8 +89,8 @@ export class ProductsService {
     }
 
     const cleanSku = sku.trim().toUpperCase();
-    if (cleanSku.length > 11) {
-      return { available: false, sku: cleanSku, message: 'SKU must be maximum 11 characters' };
+    if (cleanSku.length !== 11) {
+      return { available: false, sku: cleanSku, message: 'SKU must be exactly 11 characters (format: XXX-XXX-XXX)' };
     }
 
     const existing = await this.prisma.products.findFirst({
