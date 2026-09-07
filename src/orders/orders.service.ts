@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto/create-order.dto';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { MetaService } from '../meta/meta.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class OrdersService {
@@ -10,6 +11,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly notificationsGateway: NotificationsGateway,
     private readonly metaService: MetaService,
+    private readonly mailService: MailService,
   ) {}
 
   private async getNextOrderNumber(): Promise<number> {
@@ -126,6 +128,17 @@ export class OrdersService {
         );
     } catch (capiErr) {
       console.warn('[OrdersService] Failed to trigger Meta CAPI:', capiErr);
+    }
+
+    // Trigger Email Notification to Admin & Customer asynchronously
+    try {
+      this.mailService
+        .sendNewOrderNotification(order)
+        .catch((err) =>
+          console.warn('[OrdersService] Order email notification error:', err),
+        );
+    } catch (mailErr) {
+      console.warn('[OrdersService] Failed to trigger email notification:', mailErr);
     }
 
     return order;

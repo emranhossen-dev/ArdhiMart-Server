@@ -13,6 +13,7 @@ import { SettingsModule } from './settings/settings.module';
 import { MetaModule } from './meta/meta.module';
 import { CouponsModule } from './coupons/coupons.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ReviewsModule } from './reviews/reviews.module';
       envFilePath: '.env',
     }),
     PrismaModule,
+    MailModule,
     AuthModule,
     ProductsModule,
     OrdersModule,

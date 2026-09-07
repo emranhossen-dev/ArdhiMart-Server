@@ -175,15 +175,17 @@ model sms_logs {
 }
 
 model users {
-  id          String      @id @default(uuid())
-  firebaseUid String?     @unique
-  email       String      @unique
-  password    String?
-  name        String?
-  photoUrl    String?
-  role        users_role? @default(CUSTOMER)
-  createdAt   DateTime?   @default(now())
-  updatedAt   DateTime?   @default(now()) @updatedAt
+  id                 String      @id @default(uuid())
+  firebaseUid        String?     @unique
+  email              String      @unique
+  password           String?
+  name               String?
+  photoUrl           String?
+  role               users_role? @default(CUSTOMER)
+  resetOtp           String?
+  resetOtpExpiresAt  DateTime?
+  createdAt          DateTime?   @default(now())
+  updatedAt          DateTime?   @default(now()) @updatedAt
 }
 
 enum users_role {
