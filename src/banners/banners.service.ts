@@ -10,7 +10,7 @@ const INITIAL_HERO_BANNERS = [
     btn1Text: 'Order Now',
     btn1Link: '/products',
     btn2Text: 'Explore Gadgets',
-    btn2Link: '/products?category=Electronics',
+    btn2Link: '/products?category=Smart%20Gadgets',
     badge: 'Smart Tech Collection ⚡',
     bannerType: 'hero',
     order: 1,

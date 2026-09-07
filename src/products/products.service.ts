@@ -145,7 +145,20 @@ export class ProductsService {
       skuCounter++;
     }
 
-    const category = dto.category || 'Electronics';
+    // Strictly align category to an existing category in database
+    let category = dto.category ? String(dto.category).trim() : '';
+    const dbCats = await this.prisma.categories.findMany({ select: { name: true } });
+    if (dbCats.length > 0) {
+      const matched = dbCats.find(c => c.name.toLowerCase() === category.toLowerCase());
+      if (matched) {
+        category = matched.name;
+      } else {
+        const partial = dbCats.find(c => category && (c.name.toLowerCase().includes(category.toLowerCase()) || category.toLowerCase().includes(c.name.toLowerCase())));
+        category = partial ? partial.name : dbCats[0].name;
+      }
+    } else {
+      category = category || 'Smart Gadgets';
+    }
     const price = Number(dto.price || 0);
     const buyingPrice = dto.buyingPrice ? Number(dto.buyingPrice) : 0;
     const comparePrice = dto.comparePrice && Number(dto.comparePrice) > 0 ? Number(dto.comparePrice) : null;
@@ -219,7 +232,20 @@ export class ProductsService {
       }
       updateData.sku = cleanSku;
     }
-    if (dto.category) updateData.category = dto.category;
+    if (dto.category) {
+      let category = String(dto.category).trim();
+      const dbCats = await this.prisma.categories.findMany({ select: { name: true } });
+      if (dbCats.length > 0) {
+        const matched = dbCats.find(c => c.name.toLowerCase() === category.toLowerCase());
+        if (matched) {
+          category = matched.name;
+        } else {
+          const partial = dbCats.find(c => category && (c.name.toLowerCase().includes(category.toLowerCase()) || category.toLowerCase().includes(c.name.toLowerCase())));
+          category = partial ? partial.name : (existing.category || dbCats[0].name);
+        }
+      }
+      updateData.category = category;
+    }
     if (dto.buyingPrice !== undefined) updateData.buyingPrice = Number(dto.buyingPrice || 0);
     if (dto.price !== undefined) updateData.price = Number(dto.price || 0);
     if (dto.comparePrice !== undefined) updateData.comparePrice = dto.comparePrice && Number(dto.comparePrice) > 0 ? Number(dto.comparePrice) : null;
