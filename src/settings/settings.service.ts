@@ -15,13 +15,20 @@ export class SettingsService {
         data: {
           id: 'default',
           storeName: 'ArdhiMart',
-          storeEmail: 'support@ardhimart.com',
-          storePhone: '01700000000',
+          storeEmail: 'martardhi@gmail.com',
+          storePhone: '01895627138',
           currency: '৳',
           enableCardImageAutoSlide: true,
           enableGridCarouselAutoSlide: true,
           autoSlideSpeed: 3000,
           enablePromoModal: true,
+        },
+      });
+    } else if (settings.storePhone === '01700000000' || !settings.storePhone) {
+      settings = await (this.prisma as any).store_settings.update({
+        where: { id: 'default' },
+        data: {
+          storePhone: '01895627138',
         },
       });
     }

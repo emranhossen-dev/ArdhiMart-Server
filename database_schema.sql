@@ -172,9 +172,9 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
 
 CREATE TABLE IF NOT EXISTS `store_settings` (
   `id` VARCHAR(50) PRIMARY KEY DEFAULT 'default',
-  `storeName` VARCHAR(255) DEFAULT 'My Shop',
-  `storeEmail` VARCHAR(255) DEFAULT 'admin@myshop.com',
-  `storePhone` VARCHAR(50) DEFAULT '+8801700000000',
+  `storeName` VARCHAR(255) DEFAULT 'ArdhiMart',
+  `storeEmail` VARCHAR(255) DEFAULT 'martardhi@gmail.com',
+  `storePhone` VARCHAR(50) DEFAULT '+8801895627138',
   `currency` VARCHAR(10) DEFAULT '৳',
   `logoUrl` TEXT NULL,
   `bkashMerchant` VARCHAR(100) NULL,
