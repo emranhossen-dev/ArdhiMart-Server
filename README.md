@@ -1,4 +1,4 @@
-# ArdhiMart Backend - Scalable E-Commerce REST API and Real-time Engine
+# ArdhiMart Backend - Scalable E-Commerce REST API and Real-time
 
 [![NestJS](https://img.shields.io/badge/NestJS-11.0-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
