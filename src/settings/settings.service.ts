@@ -24,11 +24,20 @@ export class SettingsService {
           enablePromoModal: true,
         },
       });
-    } else if (settings.storePhone === '01700000000' || !settings.storePhone) {
+    } else if (
+      settings.storePhone === '01700000000' ||
+      settings.storePhone === '01745346861' ||
+      !settings.storePhone ||
+      settings.storeName === 'Gift & Print Hub BD'
+    ) {
       settings = await (this.prisma as any).store_settings.update({
         where: { id: 'default' },
         data: {
+          storeName: 'ArdhiMart',
+          storeEmail: 'martardhi@gmail.com',
           storePhone: '01895627138',
+          bkashMerchant: '01895627138',
+          nagadMerchant: '01895627138',
         },
       });
     }
