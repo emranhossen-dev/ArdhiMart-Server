@@ -4,6 +4,7 @@ import { CreateOrderDto, UpdateOrderStatusDto } from './dto/create-order.dto';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { MetaService } from '../meta/meta.service';
 import { MailService } from '../mail/mail.service';
+import { AbandonedCartsService } from '../abandoned-carts/abandoned-carts.service';
 
 @Injectable()
 export class OrdersService {
@@ -12,7 +13,9 @@ export class OrdersService {
     private readonly notificationsGateway: NotificationsGateway,
     private readonly metaService: MetaService,
     private readonly mailService: MailService,
+    private readonly abandonedCartsService: AbandonedCartsService,
   ) {}
+
 
   private async getNextOrderNumber(): Promise<number> {
     const allOrders = await this.prisma.orders.findMany({
@@ -38,6 +41,41 @@ export class OrdersService {
       throw new BadRequestException('Order must contain at least one item');
     }
 
+    // 1. Calculate and verify pricing against database to prevent client price tampering
+    let calculatedSubtotal = 0;
+    const validatedItems = await Promise.all(
+      dto.items.map(async (item) => {
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        let unitPrice = Number(item.price) || 0;
+
+        if (item.productId) {
+          const dbProduct = await this.prisma.products.findFirst({
+            where: {
+              OR: [{ id: item.productId }, { urlSlug: item.productId }],
+            },
+            select: { price: true },
+          });
+          if (dbProduct && Number(dbProduct.price) > 0) {
+            unitPrice = Number(dbProduct.price);
+          }
+        }
+        calculatedSubtotal += unitPrice * qty;
+
+        return {
+          id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          productId: item.productId,
+          productName: item.productName,
+          quantity: qty,
+          price: unitPrice,
+          image: item.image || '',
+        };
+      }),
+    );
+
+    const shippingFee = Number(dto.shippingFee) >= 0 ? Number(dto.shippingFee) : 120;
+    const discount = Math.max(0, Number(dto.discount) || 0);
+    const finalTotal = Math.max(0, calculatedSubtotal + shippingFee - discount);
+
     const nextOrderNum = await this.getNextOrderNumber();
     const orderId = String(nextOrderNum);
     const orderNumber = String(nextOrderNum);
@@ -46,34 +84,35 @@ export class OrdersService {
       data: {
         id: orderId,
         orderNumber,
-        customerName: dto.customerName,
+        customerName: dto.customerName.trim(),
         customerEmail: dto.customerEmail || null,
-        customerPhone: dto.customerPhone,
-        shippingAddress: dto.shippingAddress,
+        customerPhone: dto.customerPhone.trim(),
+        shippingAddress: dto.shippingAddress.trim(),
         city: dto.city || 'Dhaka',
         postalCode: dto.postalCode || '1200',
-        subtotal: dto.subtotal,
-        shippingFee: dto.shippingFee ?? 120,
-        discount: dto.discount ?? 0,
-        totalAmount: dto.totalAmount,
+        subtotal: calculatedSubtotal > 0 ? calculatedSubtotal : dto.subtotal,
+        shippingFee: shippingFee,
+        discount: discount,
+        totalAmount: finalTotal > 0 ? finalTotal : dto.totalAmount,
         paymentMethod: dto.paymentMethod || 'COD',
         status: 'pending',
         paymentStatus: 'unpaid',
         order_items: {
-          create: dto.items.map((item) => ({
-            id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            productId: item.productId,
-            productName: item.productName,
-            quantity: item.quantity,
-            price: item.price,
-            image: item.image || '',
-          })),
+          create: validatedItems,
         },
       },
       include: {
         order_items: true,
       },
     });
+
+    // Mark abandoned cart as recovered for this customer
+    try {
+      await this.abandonedCartsService.markRecoveredByPhone(dto.customerPhone);
+    } catch (e) {
+      console.warn('Abandoned cart recovery sync error:', e);
+    }
+
 
     // Update customer record or create new customer
     try {
@@ -230,4 +269,29 @@ export class OrdersService {
       where: { id: order.id },
     });
   }
+
+  async trackOrder(query: string) {
+    if (!query || !query.trim()) {
+      throw new BadRequestException('Order ID or Tracking number required');
+    }
+    const clean = query.trim();
+    const order = await this.prisma.orders.findFirst({
+      where: {
+        OR: [
+          { id: clean },
+          { orderNumber: clean },
+          { customerPhone: clean },
+        ],
+      },
+      include: { order_items: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order '${clean}' not found`);
+    }
+
+    return order;
+  }
 }
+

@@ -15,6 +15,7 @@ import { CouponsModule } from './coupons/coupons.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { MailModule } from './mail/mail.module';
 import { BannersModule } from './banners/banners.module';
+import { AbandonedCartsModule } from './abandoned-carts/abandoned-carts.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { BannersModule } from './banners/banners.module';
     CouponsModule,
     ReviewsModule,
     BannersModule,
+    AbandonedCartsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
